@@ -2,9 +2,6 @@ package ua.nure.baranov.wumpus
 
 import akka.actor.Actor
 
-class Speleologist(navigator: Navigator, environment: Environment) extends Actor {
+class Speleologist(navigator: Navigator, environment: Environment) {
 
-
-
-  override def receive: Receive = ???
 }

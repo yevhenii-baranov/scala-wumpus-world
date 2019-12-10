@@ -2,7 +2,7 @@ package ua.nure.baranov.wumpus
 
 import akka.actor.Actor
 
-class Environment(layout: String) extends Actor {
+class Environment(layout: String) {
 
   private val wumpusPositions: RoomPosition = parseWumpusPosition(layout)
   private val goldPosition: RoomPosition = parseGoldPosition(layout)
@@ -13,14 +13,11 @@ class Environment(layout: String) extends Actor {
   private var speleologistPosition: RoomPosition = RoomPosition(0, 0)
   private var speleologistDirection: Direction = Right
 
-
-  override def receive: Receive = ???
-
   def getSymbolCoordinates(layout: String, symbol: Char): RoomPosition = {
-    val rows = layout.split("\n")
+    val rows = layout.split("\r\n")
     val symbolIndexes = rows.map(_.indexOf(symbol))
 
-    val roomPosition = symbolIndexes.zipWithIndex.maxBy(_._2)
+    val roomPosition = symbolIndexes.zipWithIndex.maxBy(_._1)
     RoomPosition(roomPosition._1, roomPosition._2)
   }
 
@@ -37,7 +34,7 @@ class Environment(layout: String) extends Actor {
   }
 
   def parseRoomSize(layout: String): (Int, Int) = {
-    val rows = layout.split("\n")
+    val rows = layout.split("\r\n")
     val height = rows.length
     val width = rows(0).length
     (height, width)
