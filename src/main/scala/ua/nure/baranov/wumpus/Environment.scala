@@ -16,7 +16,7 @@ class Environment(layout: String) {
         false
       }
 
-      case Environment.Action(action, sender) => {
+      case Environment.PerformAction(action, sender) => {
         performAction(action)
 
         val result = if (!agentAlive) AgentDied else if (isGoldTaken) GotGold else KeepGoing
@@ -187,7 +187,7 @@ object Environment {
 
   case class EnvironmentRequest(sender: ActorRef[Response]) extends Request
   case class EnvironmentResponse(percept: WumpusPercept) extends Response
-  case class Action(action: SpeleologistAction, sender: ActorRef[Response]) extends Request
+  case class PerformAction(action: SpeleologistAction, sender: ActorRef[Response]) extends Request
   case class ActionResponse(actionResult: ActionResult) extends Response
 }
 
