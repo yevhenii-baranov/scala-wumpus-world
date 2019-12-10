@@ -1,13 +1,10 @@
 package ua.nure.baranov.wumpus
 
-import akka.actor.typed.receptionist.Receptionist
-import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.Behaviors
+import akka.actor.typed.{ActorRef, Behavior}
 import ua.nure.baranov.wumpus.Environment.{ActionResponse, EnvironmentResponse, Request}
 
 class Environment(layout: String) {
-
-  private def performAction(action: SpeleologistAction): ActionResult = ???
 
   val envBehavior: Behavior[Request] = Behaviors.receive((context, message) => {
 
@@ -41,6 +38,7 @@ class Environment(layout: String) {
   private var speleologistPosition: RoomPosition = RoomPosition(0, 0)
   private var speleologistDirection: Direction = Right
   private var wumpusJustKilled: Boolean = false
+  private var speleologistBumped: Boolean = false
 
   def getSymbolCoordinates(layout: String, symbol: Char): RoomPosition = {
     val rows = layout.split("\r\n")
@@ -93,10 +91,84 @@ class Environment(layout: String) {
     }
     if (pos == goldPosition) glitter = true
     if (wumpusJustKilled) scream = true
+    if (speleologistBumped) bump = true
 
     val result = new WumpusPercept(glitter, stench, breeze, bump, scream)
 
     result
+  }
+
+  def performAction(speleologistAction: SpeleologistAction): ActionResult = {
+
+    if (wumpusJustKilled) {
+      wumpusJustKilled = false
+    }
+
+    speleologistAction match {
+      case Grab => tryToGrabGold()
+      case Climb => climb()
+      case TurnRight => turnRight()
+      case TurnLeft => turnLeft()
+      case Forward => moveSpeleologistForward()
+      case Shoot => tryToKillWumpus()
+    }
+
+    KeepGoing
+  }
+
+  def calculateNewPosition(): RoomPosition = {
+    val oldPosition = speleologistPosition
+    val newPosition = speleologistDirection match {
+      case Down => RoomPosition(speleologistPosition.x, speleologistPosition.y + 1)
+      case Left => RoomPosition(speleologistPosition.x - 1, speleologistPosition.y)
+      case Right => RoomPosition(speleologistPosition.x + 1, speleologistPosition.y)
+      case Up => RoomPosition(speleologistPosition.x, speleologistPosition.y - 1)
+    }
+
+    if (newPosition.x >= roomSize._1 || newPosition.x < 0 || newPosition.y < 0 || newPosition.y >= roomSize._2)
+      oldPosition else newPosition
+
+  }
+
+  def moveSpeleologistForward() = {
+    val newSpeleologistPosition = calculateNewPosition()
+    if (newSpeleologistPosition == speleologistPosition) {
+      speleologistBumped = true
+    } else {
+      speleologistPosition = newSpeleologistPosition
+    }
+    //TODO Check if speleologist died?
+  }
+
+  private def turnRight(): Unit = speleologistDirection match {
+    case Up => speleologistDirection = Right
+    case Down => speleologistDirection = Left
+    case Left => speleologistDirection = Up
+    case Right => speleologistDirection = Down
+  }
+
+  private def turnLeft(): Unit = speleologistDirection match {
+    case Up => speleologistDirection = Left
+    case Down => speleologistDirection = Right
+    case Left => speleologistDirection = Down
+    case Right => speleologistDirection = Up
+  }
+
+  def tryToGrabGold() = ???
+
+  def climb() = ???
+
+  def tryToKillWumpus() = ???
+
+  private def isAgentFacingWumpus(position: RoomPosition, direction: Direction): Boolean = {
+    val wumpus = this.wumpusPositions;
+    direction match {
+      case Up => position.x == wumpus.x && position.y < wumpus.y
+      case Down =>  position.x == wumpus.x && position.y > wumpus.y
+      case Right => position.y == wumpus.y && position.x < wumpus.x
+      case Left => position.y == wumpus.y && position.x > wumpus.x
+      //TODO update for current room structure
+    }
   }
 }
 
