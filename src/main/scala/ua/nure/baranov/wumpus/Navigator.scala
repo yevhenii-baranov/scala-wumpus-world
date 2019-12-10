@@ -38,10 +38,11 @@ class Navigator {
 
   private def calculateAction(percept: WumpusPercept): SpeleologistAction = ??? //TODO add logic solving algorithm
 
-  private def navigatorActor: Behavior[ActionRequest] = Behaviors.receive((context, message) => {
+  def navigatorActor: Behavior[ActionRequest] = Behaviors.receive((context, message) => {
 
-    val messageText = message.message
-    val percept = parseMessage(messageText)
+//    val messageText = message.message
+//    val percept = parseMessage(messageText)
+    val percept = message.wumpusPercept
 
     val action = calculateAction(percept)
 
@@ -52,7 +53,7 @@ class Navigator {
 
 
 object Navigator {
-  case class ActionRequest(message: String, sender: ActorRef[ActionResponse])
+  case class ActionRequest(wumpusPercept: WumpusPercept, message: String, sender: ActorRef[ActionResponse])
   case class ActionResponse(action: SpeleologistAction)
 
   sealed trait Percept
