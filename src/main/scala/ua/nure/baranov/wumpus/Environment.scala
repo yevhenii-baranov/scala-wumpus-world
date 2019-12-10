@@ -130,7 +130,7 @@ class Environment(layout: String) {
 
   }
 
-  def moveSpeleologistForward() = {
+  def moveSpeleologistForward(): Unit = {
     val newSpeleologistPosition = calculateNewPosition()
     if (newSpeleologistPosition == speleologistPosition) {
       speleologistBumped = true
