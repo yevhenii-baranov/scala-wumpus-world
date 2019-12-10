@@ -1,8 +1,40 @@
 package ua.nure.baranov.wumpus
 
-import akka.actor.Actor
+import akka.actor.typed.receptionist.Receptionist
+import akka.actor.typed.{ActorRef, Behavior}
+import akka.actor.typed.scaladsl.Behaviors
+import ua.nure.baranov.wumpus.Environment.{ActionResponse, EnvironmentResponse, Request}
 
 class Environment(layout: String) {
+
+//  val actor =
+
+  def performAction(action: SpeleologistAction): ActionResult = ???
+
+  def composeCurrentState() = ???
+
+  val envBehavior: Behavior[Request] = Behaviors.receive((context, message) => {
+
+    var killSwitch: Boolean = false
+
+    message match {
+      case Environment.EnvironmentRequest(sender) => {
+        val environmentState = composeCurrentState()
+        sender ! EnvironmentResponse(environmentState)
+        killSwitch = false
+      }
+
+      case Environment.Action(action, sender) => {
+        val result = performAction(action)
+
+        sender ! ActionResponse(result)
+        killSwitch = if (result == KeepGoing) false else true
+      }
+    }
+
+    if (killSwitch) Behaviors.stopped else Behaviors.same
+  })
+
 
   private val wumpusPositions: RoomPosition = parseWumpusPosition(layout)
   private val goldPosition: RoomPosition = parseGoldPosition(layout)
@@ -48,10 +80,13 @@ class Environment(layout: String) {
 }
 
 object Environment {
-  case class EnvironmentRequest()
-  case class EnvironmentResponse(percept: WumpusPercept)
-  case class Action(action: SpeleologistAction)
-  case class ActionResponse(actionResult: ActionResult)
+  sealed trait Request
+  sealed trait Response
+
+  case class EnvironmentRequest(sender: ActorRef[Response]) extends Request
+  case class EnvironmentResponse(percept: WumpusPercept) extends Response
+  case class Action(action: SpeleologistAction, sender: ActorRef[Response]) extends Request
+  case class ActionResponse(actionResult: ActionResult) extends Response
 }
 
 case class RoomPosition(x: Int, y: Int)
