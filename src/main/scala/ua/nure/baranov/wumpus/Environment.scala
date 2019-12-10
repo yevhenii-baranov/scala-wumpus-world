@@ -7,11 +7,7 @@ import ua.nure.baranov.wumpus.Environment.{ActionResponse, EnvironmentResponse, 
 
 class Environment(layout: String) {
 
-//  val actor =
-
-  def performAction(action: SpeleologistAction): ActionResult = ???
-
-  def composeCurrentState() = ???
+  private def performAction(action: SpeleologistAction): ActionResult = ???
 
   val envBehavior: Behavior[Request] = Behaviors.receive((context, message) => {
 
@@ -35,15 +31,16 @@ class Environment(layout: String) {
     if (killSwitch) Behaviors.stopped else Behaviors.same
   })
 
-
   private val wumpusPositions: RoomPosition = parseWumpusPosition(layout)
   private val goldPosition: RoomPosition = parseGoldPosition(layout)
   private val pitPosition: RoomPosition = parsePitPosition(layout)
   private var isGoldTaken: Boolean = false
   private var isWumpusKilled: Boolean = false
+  private var agentHasArrow: Boolean = true
   private val roomSize: (Int, Int) = parseRoomSize(layout)
   private var speleologistPosition: RoomPosition = RoomPosition(0, 0)
   private var speleologistDirection: Direction = Right
+  private var wumpusJustKilled: Boolean = false
 
   def getSymbolCoordinates(layout: String, symbol: Char): RoomPosition = {
     val rows = layout.split("\r\n")
@@ -76,6 +73,30 @@ class Environment(layout: String) {
     val symbol = 'G'
 
     getSymbolCoordinates(layout, symbol)
+  }
+
+  private def composeCurrentState(): WumpusPercept = {
+    var stench: Boolean = false
+    var glitter: Boolean = false
+    var breeze: Boolean = false
+    var scream: Boolean = false
+    var bump: Boolean = false
+
+    val pos = speleologistPosition
+
+    val adjacentRooms = List(RoomPosition(pos.x - 1, pos.y), RoomPosition(pos.x + 1, pos.y),
+      RoomPosition(pos.x, pos.y - 1), RoomPosition(pos.x, pos.y + 1))
+
+    for (r <- adjacentRooms) {
+      if (wumpusPositions == r) stench = true
+      if (pitPosition == r) breeze = true
+    }
+    if (pos == goldPosition) glitter = true
+    if (wumpusJustKilled) scream = true
+
+    val result = new WumpusPercept(glitter, stench, breeze, bump, scream)
+
+    result
   }
 }
 
