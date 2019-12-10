@@ -8,20 +8,21 @@ class Environment(layout: String) {
 
   val envBehavior: Behavior[Request] = Behaviors.receive((context, message) => {
 
-    var killSwitch: Boolean = false
-
-    message match {
+    val killSwitch = message match {
       case Environment.EnvironmentRequest(sender) => {
         val environmentState = composeCurrentState()
         sender ! EnvironmentResponse(environmentState)
-        killSwitch = false
+
+        false
       }
 
       case Environment.Action(action, sender) => {
-        val result = performAction(action)
+        performAction(action)
 
+        val result = if (!agentAlive) AgentDied else if (isGoldTaken) GotGold else KeepGoing
         sender ! ActionResponse(result)
-        killSwitch = if (result == KeepGoing) false else true
+
+        result != KeepGoing
       }
     }
 
@@ -39,6 +40,7 @@ class Environment(layout: String) {
   private var speleologistDirection: Direction = Right
   private var wumpusJustKilled: Boolean = false
   private var speleologistBumped: Boolean = false
+  private var agentAlive: Boolean = true
 
   def getSymbolCoordinates(layout: String, symbol: Char): RoomPosition = {
     val rows = layout.split("\r\n")
@@ -98,7 +100,7 @@ class Environment(layout: String) {
     result
   }
 
-  def performAction(speleologistAction: SpeleologistAction): ActionResult = {
+  def performAction(speleologistAction: SpeleologistAction): Unit = {
 
     if (wumpusJustKilled) {
       wumpusJustKilled = false
@@ -112,8 +114,6 @@ class Environment(layout: String) {
       case Forward => moveSpeleologistForward()
       case Shoot => tryToKillWumpus()
     }
-
-    KeepGoing
   }
 
   def calculateNewPosition(): RoomPosition = {
@@ -154,11 +154,20 @@ class Environment(layout: String) {
     case Right => speleologistDirection = Up
   }
 
-  def tryToGrabGold() = ???
+  def tryToGrabGold() = if (speleologistPosition == goldPosition) {
+    isGoldTaken = true
+  }
 
-  def climb() = ???
+  def climb() = {
+    this.agentAlive = false
+    // TODO ??????
+  }
 
-  def tryToKillWumpus() = ???
+  def tryToKillWumpus(): Unit = if (isAgentFacingWumpus(speleologistPosition, speleologistDirection) && agentHasArrow) {
+    this.wumpusJustKilled = true
+    this.isWumpusKilled = true
+    this.agentHasArrow = false
+  }
 
   private def isAgentFacingWumpus(position: RoomPosition, direction: Direction): Boolean = {
     val wumpus = this.wumpusPositions;
