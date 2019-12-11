@@ -17,9 +17,9 @@ object Main {
     val speleologist = new Speleologist
 
 
-    val system: ActorSystem[Nothing] = ActorSystem(Behaviors.setup(context => {
+    val system: ActorSystem[Any] = ActorSystem(Behaviors.setup[Any] (context => {
       val envRef = context.spawn(environment.envBehavior, "environment")
-      val navRef = context.spawn(navigator.navigatorActor, "navigator")
+      val navRef = context.spawn(navigator.navigatorActor, "snavigator")
       val spelRef = context.spawn(speleologist.setupActor(navRef, envRef), "speleologist")
       Behaviors.same
     }), "system")

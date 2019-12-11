@@ -42,6 +42,7 @@ class Navigator {
 
 //    val messageText = message.message
 //    val percept = parseMessage(messageText)
+    context.log.atInfo().log("Got request to get the next action based on perception")
     val percept = message.wumpusPercept
 
     val action = calculateAction(percept)

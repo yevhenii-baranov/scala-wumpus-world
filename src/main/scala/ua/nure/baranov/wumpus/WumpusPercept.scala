@@ -1,7 +1,7 @@
 package ua.nure.baranov.wumpus
 
-case class WumpusPercept(val glitter: Boolean,
-                         val stench: Boolean,
-                         val breeze: Boolean,
-                         val bump: Boolean,
-                         val scream: Boolean)
+case class WumpusPercept(glitter: Boolean,
+                         stench: Boolean,
+                         breeze: Boolean,
+                         bump: Boolean,
+                         scream: Boolean)
