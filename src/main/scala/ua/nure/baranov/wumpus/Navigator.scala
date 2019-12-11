@@ -36,8 +36,6 @@ class Navigator {
     else throw new RuntimeException("Perception string must be about the state of the cave!")
   }
 
-  private def calculateAction(percept: WumpusPercept): SpeleologistAction = ??? //TODO add logic solving algorithm
-
   def navigatorActor: Behavior[ActionRequest] = Behaviors.receive((context, message) => {
 
 //    val messageText = message.message
@@ -45,7 +43,7 @@ class Navigator {
     context.log.atInfo().log("Got request to get the next action based on perception")
     val percept = message.wumpusPercept
 
-    val action = calculateAction(percept)
+    val action = Pathfinder.calculateAction(percept)
 
     message.sender ! Navigator.ActionResponse(action)
     Behaviors.same
