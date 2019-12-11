@@ -13,20 +13,20 @@ class Speleologist {
 
   private var gameState: ActionResult = KeepGoing
 
+  def setupActor(navRef: ActorRef[Navigator.ActionRequest], envRef: ActorRef[Environment.Request]): Behavior[Nothing] =
+    Behaviors.setup(context => {
+      // Find environment and navigator
 
-  def setupActor: Behavior[Nothing] = Behaviors.setup(context => {
-    // Find environment and navigator
+      // Initialize subactors to converse with environment and navigator
+      if (environmentBehaviorRef == null) {
+        environmentBehaviorRef = context.spawn(environmentBehavior, "speleologist->behavior")
+        navigatorBehaviorRef = context.spawn(navigatorBehavior, "speleologist->navigator")
+      }
 
-    // Initialize subactors to converse with environment and navigator
-    if (environmentBehaviorRef == null){
-      environmentBehaviorRef = context.spawn(environmentBehavior, "speleologist->behavior")
-      navigatorBehaviorRef = context.spawn(navigatorBehavior, "speleologist->navigator")
-    }
+      envRef ! Environment.EnvironmentRequest(environmentBehaviorRef)
 
-    envRef ! Environment.EnvironmentRequest(environmentBehaviorRef)
-
-    Behaviors.same
-  })
+      Behaviors.same
+    })
 
   private def environmentBehavior: Behavior[Environment.Response] = Behaviors.receive[Environment.Response]((context, message) => {
     message match {
@@ -42,10 +42,10 @@ class Speleologist {
     }
   })
 
-  private def navigatorBehavior: Behavior[Navigator.ActionResponse] = Behaviors.receive[Navigator.ActionResponse] ((context, message) => {
-      envRef ! Environment.PerformAction(message.action, environmentBehaviorRef)
+  private def navigatorBehavior: Behavior[Navigator.ActionResponse] = Behaviors.receive[Navigator.ActionResponse]((context, message) => {
+    envRef ! Environment.PerformAction(message.action, environmentBehaviorRef)
 
-      Behaviors.same
-    })
+    Behaviors.same
+  })
 
 }
