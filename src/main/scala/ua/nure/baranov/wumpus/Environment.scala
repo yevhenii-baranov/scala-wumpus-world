@@ -137,7 +137,6 @@ class Environment(layout: String) {
     } else {
       speleologistPosition = newSpeleologistPosition
     }
-    //TODO Check if speleologist died?
   }
 
   private def turnRight(): Unit = speleologistDirection match {
@@ -156,11 +155,16 @@ class Environment(layout: String) {
 
   def tryToGrabGold() = if (speleologistPosition == goldPosition) {
     isGoldTaken = true
+    // if the gold was taken, the game is won
+    println("Gold was taken!")
+    println("Speleologist wins!")
+  } else {
+    println("Speleologist tried to grab gold, but it wasn't there!")
+    println("Speleologist lost!")
   }
 
   def climb() = {
     this.agentAlive = false
-    // TODO ??????
   }
 
   def tryToKillWumpus(): Unit = if (isAgentFacingWumpus(speleologistPosition, speleologistDirection) && agentHasArrow) {
@@ -176,7 +180,6 @@ class Environment(layout: String) {
       case Down =>  position.x == wumpus.x && position.y > wumpus.y
       case Right => position.y == wumpus.y && position.x < wumpus.x
       case Left => position.y == wumpus.y && position.x > wumpus.x
-      //TODO update for current room structure
     }
   }
 }
